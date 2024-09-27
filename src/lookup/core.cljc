@@ -112,3 +112,54 @@
 (defn matches? [selector hiccup]
   (let [headers (get-hiccup-headers hiccup)]
     (every? (fn [[k v]] (matches-1? headers k v)) selector)))
+
+(defn subtree? [x]
+  (and (sequential? x) (not (map-entry? x))))
+
+(defn hiccup? [x]
+  (and (vector? x) (keyword? (first x))))
+
+(defn flatten-seqs* [xs coll]
+  (reduce
+   (fn [_ x]
+     (if (seq? x)
+       (flatten-seqs* x coll)
+       (conj! coll x)))
+   nil xs))
+
+(defn flatten-seqs [xs]
+  (let [coll (transient [])]
+    (flatten-seqs* xs coll)
+    (persistent! coll)))
+
+(defn get-children [node]
+  (let [n (if (map? (second node)) 2 1)]
+    (flatten-seqs (drop n node))))
+
+(defn get-nodes [node]
+  (->> node
+       (tree-seq subtree? identity)
+       (filter hiccup?)))
+
+(defn get-descendants [node]
+  (->> (get-children node)
+       get-nodes))
+
+(defn select [selector hiccup]
+  (loop [path (if (coll? selector) selector [selector])
+         nodes (get-nodes hiccup)]
+    (if (empty? path)
+      nodes
+      (let [matching-nodes (filter (partial matches? (parse-selector (first path))) nodes)
+            rest-selectors (next path)
+            [path matches]
+            (cond
+              (= '> (first rest-selectors))
+              [(next rest-selectors) (mapcat get-children matching-nodes)]
+
+              (empty? rest-selectors)
+              [rest-selectors matching-nodes]
+
+              :else
+              [rest-selectors (mapcat get-descendants matching-nodes)])]
+        (recur path (set matches))))))

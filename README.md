@@ -33,18 +33,25 @@ With Leiningen:
 <a id="find"></a>
 ## Find interesting bits with CSS selectors
 
-A path is a vector of symbols (or strings) of CSS selectors. Like this:
+`lookup.core/select` can be used to find hiccup nodes with a CSS selector. A
+selector can be a single expression, like `'div` to find all divs, or a vector
+representing a hierarchy, e.g. `'[div button.btn]` finds all `button` elements
+with the class name `"btn"` that are descendants of a `div` element. The `>`
+character can be used to specify direct children, e.g. `'[ul > li]` will only
+match `li` elements with a direct `ul` parent.
 
-- `'[a]` matches all anchor tags.
+Supported selector symbols:
+
+- `'a` matches all anchor tags.
 - `'[form input]` matches all input tags nested inside a form.
 - `'[form > input]` matches all input tags that are direct children of a form.
-- `'[div.foo]` matches all div tags with "foo" in its class name.
-- `'[.button]` matches all elements with the "button" class.
-- `'[div#content]` matches the div with "content" as its id.
-- `'[:first-child]` matches any element that is the first child.
-- `'[:last-child]` matches any element that is the last child.
-- `'["meta[property]"]` matches all meta tags with the property attribute.
-- `'["meta[property=og:title]"]` matches all meta tags with the property
+- `'div.foo` matches all div tags with "foo" in its class name.
+- `'.button` matches all elements with the "button" class.
+- `'div#content` matches the div with "content" as its id.
+- `':first-child` matches any element that is the first child.
+- `':last-child` matches any element that is the last child.
+- `'"meta[property]"` matches all meta tags with the property attribute.
+- `'"meta[property=og:title]"` matches all meta tags with the property
   attribute set to "og:title".
 
 Additionally supports all [attribute selector

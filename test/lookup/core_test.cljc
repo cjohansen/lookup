@@ -111,3 +111,21 @@
   (is (false? (matches? "h1[lang*=GB]" [:h1 {:lang "nb-NO"} "Hello"])))
   (is (false? (matches? "h1[lang*=btn]" [:h1.btn "Hello"])))
   (is (true? (matches? "h1[class*=primary]" [:h1.btn-primary-lul "Hello"]))))
+
+(def hiccup
+  [:div
+   [:ul
+    [:li {:replicant/key "B1"} "B1"]
+    [:li.active {:replicant/key "C"}
+     [:a {:href "#"} "C"]]
+    [:li {:replicant/key "D1"} "D1"]
+    [:li {:replicant/key "E"} "E"]]])
+
+(deftest select-test
+  (is (= (sut/select '[ul > li a] hiccup)
+         #{[:a {:href "#"} "C"]}))
+
+  (is (= (sut/select '[ul > a] hiccup) #{}))
+
+  (is (= (sut/select '[ul a] hiccup)
+         #{[:a {:href "#"} "C"]})))
