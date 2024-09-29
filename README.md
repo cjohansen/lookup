@@ -40,6 +40,26 @@ with the class name `"btn"` that are descendants of a `div` element. The `>`
 character can be used to specify direct children, e.g. `'[ul > li]` will only
 match `li` elements with a direct `ul` parent.
 
+```clj
+(require '[lookup.core :as lookup])
+
+(def hiccup
+  [:div
+   [:ul
+    nil
+    [:li "B1"]
+    [:li.active
+     [:a {:href "#"} "C"]]
+    [:li "D1"]
+    [:li "E"]]
+   [:p "Paragraph 1"]
+   [:h1 "Heading"]
+   [:p "Paragraph 2"]])
+
+(lookup/select '[ul > li a])
+;;=> #{[:a {:href "#"} "C"]}
+```
+
 Supported selector symbols:
 
 - `'a` matches all anchor tags.
