@@ -2,10 +2,10 @@
 
 You wrote a function that returns hiccup, and now you want to test it.
 
-But you don't care about all the bells and whistles,
+But you don't care about all the bells and whistles,<br>
 only certain bits and pieces.
 
-That's what `lookup` helps you do:
+That's what `lookup` helps you do:<br>
 Find the parts that matter to you.
 
 ----
