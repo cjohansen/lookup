@@ -1,6 +1,7 @@
 (ns lookup.core
-  (:require [clojure.string :as str]
-            [clojure.set :as set]))
+  (:require [clojure.set :as set]
+            [clojure.string :as str]
+            [clojure.walk :as walk]))
 
 (defn stringify-selector [selector]
   (if (keyword? selector)
@@ -75,12 +76,18 @@
 
 (defn get-hiccup-headers [hiccup]
   (let [headers (parse-selector (first hiccup))
-        attrs (second hiccup)]
-    (if (map? attrs)
-      (-> headers
-          (into (dissoc attrs :class))
-          (update :class #(into (set %) (parse-classes (:class attrs)))))
-      headers)))
+        attrs (second hiccup)
+        children (if (map? attrs) (drop 2 hiccup) (next hiccup))]
+    (cond-> (if (map? attrs)
+              (-> headers
+                  (into (dissoc attrs :class))
+                  (update :class #(into (set %) (parse-classes (:class attrs)))))
+              headers)
+      (:path (meta hiccup))
+      (assoc ::path (:path (meta hiccup)))
+
+      (seq children)
+      (assoc :children children))))
 
 (defn setify [x]
   (if (string? x)
@@ -103,21 +110,30 @@
       "*=" (str/includes? (stringify actual) val)
       (contains? hiccup-headers attr))))
 
-(defn matches-1? [hiccup-headers k v]
+(defn pseudo-class-match? [index {::keys [path]} pc]
+  (case pc
+    "first-child" (= 0 (last path))
+    "last-child" (= path (-> (get index (butlast path)) last meta :path))))
+
+(defn matches-1? [index hiccup-headers k v]
   (case k
     :class (set/subset? v (k hiccup-headers))
     :attrs (every? #(attr-match? hiccup-headers %) v)
+    :pseudo-class (every? #(pseudo-class-match? index hiccup-headers %) v)
     (= (k hiccup-headers) v)))
 
-(defn matches? [selector hiccup]
-  (let [headers (get-hiccup-headers hiccup)]
-    (every? (fn [[k v]] (matches-1? headers k v)) selector)))
+(defn matches?
+  ([selector hiccup]
+   (matches? nil selector hiccup))
+  ([index selector hiccup]
+   (let [headers (get-hiccup-headers hiccup)]
+     (every? (fn [[k v]] (matches-1? index headers k v)) selector))))
 
 (defn subtree? [x]
   (and (sequential? x) (not (map-entry? x))))
 
 (defn hiccup? [x]
-  (and (vector? x) (keyword? (first x))))
+  (and (vector? x) (not (map-entry? x)) (keyword? (first x))))
 
 (defn flatten-seqs* [xs coll]
   (reduce
@@ -132,34 +148,91 @@
     (flatten-seqs* xs coll)
     (persistent! coll)))
 
-(defn get-children [node]
-  (let [n (if (map? (second node)) 2 1)]
-    (flatten-seqs (drop n node))))
+(defn normalize-attrs [headers]
+  (->> (dissoc headers :tag-name :children ::path)
+       (filter (fn [[_ v]] (not-empty v)))
+       (into {})))
+
+(defn ^:export normalize-hiccup [hiccup]
+  (if (hiccup? hiccup)
+    (let [headers (get-hiccup-headers hiccup)]
+      (into [(keyword (:tag-name headers))
+             (normalize-attrs headers)]
+            (->> (flatten-seqs (:children headers))
+                 (map normalize-hiccup))))
+    hiccup))
+
+(defn normalize-tree [hiccup path]
+  (if (hiccup? hiccup)
+    (let [headers (get-hiccup-headers hiccup)]
+      (-> [(keyword (:tag-name headers))
+           (normalize-attrs headers)]
+          (into (->> (flatten-seqs (:children headers))
+                     (remove nil?)
+                     (map-indexed #(normalize-tree %2 (conj path %1)))))
+          (with-meta {:path path})))
+    (with-meta
+      {:kind :text-node
+       :text hiccup}
+      {:path path})))
+
+(defn index-tree [normalized-hiccup]
+  (->> normalized-hiccup
+       (tree-seq subtree? identity)
+       (filter hiccup?)
+       (map (juxt (comp :path meta) identity))
+       (into {})))
 
 (defn get-nodes [node]
   (->> node
        (tree-seq subtree? identity)
        (filter hiccup?)))
 
+(defn get-children [node]
+  (drop 2 node))
+
 (defn get-descendants [node]
   (->> (get-children node)
        get-nodes))
 
+(defn get-next-sibling [index node]
+  (let [path (-> node meta :path)]
+    (get index (update path (dec (count path)) inc))))
+
+(defn get-subsequent-siblings [index node]
+  (let [path (-> node meta :path)]
+    (drop (+ 3 (last path)) (get index (or (butlast path) [])))))
+
+(defn strip-attrs [hiccup]
+  (into [(first hiccup)] (rest (rest hiccup))))
+
 (defn select [selector hiccup]
-  (loop [path (if (coll? selector) selector [selector])
-         nodes (get-nodes hiccup)]
-    (if (empty? path)
-      nodes
-      (let [matching-nodes (filter (partial matches? (parse-selector (first path))) nodes)
-            rest-selectors (next path)
-            [path matches]
-            (cond
-              (= '> (first rest-selectors))
-              [(next rest-selectors) (mapcat get-children matching-nodes)]
+  (let [hiccup (normalize-tree hiccup [])
+        index (index-tree hiccup)]
+    (loop [path (if (coll? selector) selector [selector])
+           nodes (get-nodes hiccup)]
+      (if (empty? path)
+        (walk/postwalk
+         #(cond-> %
+            (= :text-node (:kind %)) :text
+            (and (hiccup? %) (empty? (second %))) strip-attrs)
+         nodes)
+        (let [matching-nodes (filter (partial matches? index (parse-selector (first path))) nodes)
+              rest-selectors (next path)
+              [path matches]
+              (cond
+                (= '> (first rest-selectors))
+                [(next rest-selectors) (mapcat get-children matching-nodes)]
 
-              (empty? rest-selectors)
-              [rest-selectors matching-nodes]
+                (= '+ (first rest-selectors))
+                [(next rest-selectors) (map #(get-next-sibling index %) matching-nodes)]
 
-              :else
-              [rest-selectors (mapcat get-descendants matching-nodes)])]
-        (recur path (set matches))))))
+                (= "~" (str (first rest-selectors)))
+                [(next rest-selectors) (mapcat #(get-subsequent-siblings index %) matching-nodes)]
+
+                (empty? rest-selectors)
+                [rest-selectors matching-nodes]
+
+                :else
+                [rest-selectors (mapcat get-descendants matching-nodes)])]
+          (recur path (set matches)))))))

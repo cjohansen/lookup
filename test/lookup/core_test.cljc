@@ -115,11 +115,15 @@
 (def hiccup
   [:div
    [:ul
+    nil
     [:li {:replicant/key "B1"} "B1"]
     [:li.active {:replicant/key "C"}
      [:a {:href "#"} "C"]]
     [:li {:replicant/key "D1"} "D1"]
-    [:li {:replicant/key "E"} "E"]]])
+    [:li {:replicant/key "E"} "E"]]
+   [:p "Paragraph 1"]
+   [:h1 "Heading"]
+   [:p "Paragraph 2"]])
 
 (deftest select-test
   (is (= (sut/select '[ul > li a] hiccup)
@@ -128,4 +132,17 @@
   (is (= (sut/select '[ul > a] hiccup) #{}))
 
   (is (= (sut/select '[ul a] hiccup)
-         #{[:a {:href "#"} "C"]})))
+         #{[:a {:href "#"} "C"]}))
+
+  (is (= (sut/select '[ul li:first-child] hiccup)
+         #{[:li {:replicant/key "B1"} "B1"]}))
+
+  (is (= (sut/select '[ul li:last-child] hiccup)
+         #{[:li {:replicant/key "E"} "E"]}))
+
+  (is (= (sut/select '[h1 + p] hiccup)
+         #{[:p "Paragraph 2"]}))
+
+  (is (= (sut/select '[ul "~" p] hiccup)
+         #{[:p "Paragraph 1"]
+           [:p "Paragraph 2"]})))

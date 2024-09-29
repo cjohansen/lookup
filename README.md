@@ -45,6 +45,8 @@ Supported selector symbols:
 - `'a` matches all anchor tags.
 - `'[form input]` matches all input tags nested inside a form.
 - `'[form > input]` matches all input tags that are direct children of a form.
+- `'[h1 + p]` matches all paragraphs that are direct siblings of an h1.
+- `'[h1 ~ p]` matches all paragraphs that are subsequent siblings of an h1.
 - `'div.foo` matches all div tags with "foo" in its class name.
 - `'.button` matches all elements with the "button" class.
 - `'div#content` matches the div with "content" as its id.
