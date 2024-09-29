@@ -171,3 +171,21 @@
           [:p "Paragraph 1"]
           [:h1 "Heading"]
           [:p "Paragraph 2"]])))
+
+(deftest get-text-test
+  (is (= (sut/get-text hiccup)
+         "B1 C D1 E Paragraph 1 Heading Paragraph 2"))
+
+  (is (= (sut/get-text
+          [:div
+           [:ul
+            nil
+            [:li {} "One"]
+            [:li.active
+             [:a {:href "#"} "Two"]]
+            [:li "Three"]
+            [:li "Four"]]
+           [:p {:class "text-sm fg-red"} "Paragraph 1"]
+           '([:h1 "Heading"]
+             [:p "Paragraph 2"])])
+         "One Two Three Four Paragraph 1 Heading Paragraph 2")))

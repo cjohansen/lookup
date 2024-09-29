@@ -132,3 +132,27 @@ something that's better suited for human reading, employ `:strip-empty-attrs?`:
 
 <a id="extract-text"></a>
 ## Extract text content
+
+`lookup.core/get-text` returns the text content of some hiccup:
+
+```clj
+(require '[lookup.core :as lookup])
+
+(lookup/get-text [:h1 "Hello world"])
+;;=> "Hello world"
+
+(lookup/get-text
+ [:div
+  [:ul
+   nil
+   [:li {} "One"]
+   [:li.active
+    [:a {:href "#"} "Two"]]
+   [:li "Three"]
+   [:li "Four"]]
+  [:p {:class "text-sm fg-red"} "Paragraph 1"]
+  '([:h1 "Heading"]
+    [:p "Paragraph 2"])])
+
+;;=> "One Two Three Four Paragraph 1 Heading Paragraph 2"
+```

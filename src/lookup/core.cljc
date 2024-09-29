@@ -247,3 +247,16 @@
                 :else
                 [rest-selectors (mapcat get-descendants matching-nodes)])]
           (recur path (set matches)))))))
+
+(defn get-text
+  "Return only text from the hiccup structure; remove
+   all tags and attributes"
+  [hiccup]
+  (str/join
+   " "
+   (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
+                    flatten-seqs
+                    (remove nil?))]
+     (if (hiccup? child)
+       (get-text child)
+       (str child)))))
