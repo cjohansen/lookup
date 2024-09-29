@@ -62,5 +62,73 @@ operators](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors)
 <a id="normalize"></a>
 ## Normalize hiccup
 
+Hiccup is a flexible format, and when built with code it will often contain
+noise such as nested lists of children, `nil`s, classes in several places, etc.
+`lookup.core/normalize-hiccup` unifies all these things:
+
+```clj
+(require '[lookup.core :as lookup])
+
+(lookup/normalize-hiccup
+ [:div
+  [:ul
+   nil
+   [:li {} "One"]
+   [:li.active
+    [:a {:href "#"} "Two"]]
+   [:li "Three"]
+   [:li "Four"]]
+  [:p {:class "text-sm fg-red"} "Paragraph 1"]
+  '([:h1 "Heading"]
+   [:p "Paragraph 2"])])
+
+;;=>
+;; [:div {}
+;;  [:ul {}
+;;   [:li {} "One"]
+;;   [:li {:class #{"active"}} [:a {:href "#"} "Two"]]
+;;   [:li {} "Three"]
+;;   [:li {} "Four"]]
+;;  [:p {:class #{"fg-red" "text-sm"}}
+;;   "Paragraph 1"]
+;;  [:h1 {} "Heading"]
+;;  [:p {} "Paragraph 2"]]
+```
+
+This form is ideal for further programmatic manipulation, as every node is
+guaranteed to have an attribute map and a flat list of children. If you want
+something that's better suited for human reading, employ `:strip-empty-attrs?`:
+
+```clj
+(require '[lookup.core :as lookup])
+
+(lookup/normalize-hiccup
+ [:div
+  [:ul
+   nil
+   [:li {} "One"]
+   [:li.active
+    [:a {:href "#"} "Two"]]
+   [:li "Three"]
+   [:li "Four"]]
+  [:p {:class "text-sm fg-red"} "Paragraph 1"]
+  '([:h1 "Heading"]
+   [:p "Paragraph 2"])]
+ {:strip-empty-attrs? true})
+
+;;=>
+;; [:div
+;;  [:ul
+;;   [:li "One"]
+;;   [:li {:class #{"active"}}
+;;    [:a {:href "#"} "Two"]]
+;;   [:li "Three"]
+;;   [:li "Four"]]
+;;  [:p {:class #{"fg-red" "text-sm"}}
+;;   "Paragraph 1"]
+;;  [:h1 "Heading"]
+;;  [:p "Paragraph 2"]]
+```
+
 <a id="extract-text"></a>
 ## Extract text content

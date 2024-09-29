@@ -146,3 +146,28 @@
   (is (= (sut/select '[ul "~" p] hiccup)
          #{[:p "Paragraph 1"]
            [:p "Paragraph 2"]})))
+
+(deftest normalize-test
+  (is (= (sut/normalize-hiccup hiccup)
+         [:div {}
+          [:ul {}
+           [:li {:replicant/key "B1"} "B1"]
+           [:li {:class #{"active"}, :replicant/key "C"}
+            [:a {:href "#"} "C"]]
+           [:li {:replicant/key "D1"} "D1"]
+           [:li {:replicant/key "E"} "E"]]
+          [:p {} "Paragraph 1"]
+          [:h1 {} "Heading"]
+          [:p {} "Paragraph 2"]]))
+
+  (is (= (sut/normalize-hiccup hiccup {:strip-empty-attrs? true})
+         [:div
+          [:ul
+           [:li {:replicant/key "B1"} "B1"]
+           [:li {:class #{"active"}, :replicant/key "C"}
+            [:a {:href "#"} "C"]]
+           [:li {:replicant/key "D1"} "D1"]
+           [:li {:replicant/key "E"} "E"]]
+          [:p "Paragraph 1"]
+          [:h1 "Heading"]
+          [:p "Paragraph 2"]])))
