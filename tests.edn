@@ -1,3 +1,5 @@
 #kaocha/v1
 {:plugins [:noyoda.plugin/swap-actual-and-expected]
- :tests [{:id :clj}]}
+ :tests [{:id :clj}
+         {:id :cljs
+          :type :kaocha.type/cljs}]}
