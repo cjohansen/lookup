@@ -146,9 +146,8 @@
     (persistent! coll)))
 
 (defn ^:no-doc normalize-attrs [headers]
-  (->> (dissoc headers :tag-name :children ::path)
-       (filter (fn [[_ v]] (not-empty v)))
-       (into {})))
+  (cond-> (dissoc headers :tag-name :children ::path)
+    (empty? (:class headers)) (dissoc :class)))
 
 (defn ^:export normalize-hiccup
   "Normalizes hiccup by removing nil children, flattening children, parsing out id
@@ -241,7 +240,7 @@
 
                 :else
                 [rest-selectors (mapcat get-descendants matching-nodes)])]
-          (recur path (set matches)))))))
+          (recur path matches))))))
 
 (defn get-text
   "Return only text from the hiccup structure; remove

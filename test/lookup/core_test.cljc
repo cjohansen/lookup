@@ -136,25 +136,32 @@
 
 (deftest select-test
   (is (= (sut/select '[ul > li a] hiccup)
-         #{[:a {:href "#"} "C"]}))
+         [[:a {:href "#"} "C"]]))
 
-  (is (= (sut/select '[ul > a] hiccup) #{}))
+  (is (= (sut/select '[ul > a] hiccup) []))
 
   (is (= (sut/select '[ul a] hiccup)
-         #{[:a {:href "#"} "C"]}))
+         [[:a {:href "#"} "C"]]))
 
   (is (= (sut/select '[ul li:first-child] hiccup)
-         #{[:li {:replicant/key "B1"} "B1"]}))
+         [[:li {:replicant/key "B1"} "B1"]]))
 
   (is (= (sut/select '[ul li:last-child] hiccup)
-         #{[:li {:replicant/key "E"} "E"]}))
+         [[:li {:replicant/key "E"} "E"]]))
 
   (is (= (sut/select '[h1 + p] hiccup)
-         #{[:p "Paragraph 2"]}))
+         [[:p "Paragraph 2"]]))
 
   (is (= (sut/select '[ul "~" p] hiccup)
-         #{[:p "Paragraph 1"]
-           [:p "Paragraph 2"]})))
+         [[:p "Paragraph 1"]
+          [:p "Paragraph 2"]]))
+
+  (testing "Is able to select seemingly identical nodes in different positions"
+    (is (= (sut/select 'li [:ul
+                            [:li "Not unique"]
+                            [:li "Not unique"]])
+           [[:li "Not unique"]
+            [:li "Not unique"]]))))
 
 (deftest normalize-test
   (is (= (sut/normalize-hiccup hiccup)
