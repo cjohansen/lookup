@@ -244,6 +244,10 @@
                 [rest-selectors (mapcat get-descendants matching-nodes)])]
           (recur path matches))))))
 
+(defn attrs [hiccup]
+  (when (map? (second hiccup))
+    (second hiccup)))
+
 (defn get-text
   "Return only text from the hiccup structure; remove
    all tags and attributes"
