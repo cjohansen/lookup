@@ -220,7 +220,9 @@
         (walk/postwalk
          #(cond-> %
             (= :text-node (:kind %)) :text
-            (and (hiccup? %) (empty? (second %))) strip-attrs)
+            (and (hiccup? %)
+                 (or (nil? (second %)) (map? (second %)))
+                 (empty? (second %))) strip-attrs)
          nodes)
         (let [matching-nodes (filter (partial matches? index (parse-selector (first path))) nodes)
               rest-selectors (next path)

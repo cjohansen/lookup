@@ -171,7 +171,11 @@
            [[:ui.elements/button {:text "Click it!"}]]))
 
     (is (= (sut/select 'ui/button [:ui/button {:text "Click it!"}])
-           [[:ui/button {:text "Click it!"}]]))))
+           [[:ui/button {:text "Click it!"}]])))
+
+  (testing "Does not trip on hiccup-like tuples"
+    (is (= (sut/select 'ui/button [:ui/button {:actions [[:action/alert "Lol!"]]}])
+           [[:ui/button {:actions [[:action/alert "Lol!"]]}]]))))
 
 (deftest normalize-test
   (is (= (sut/normalize-hiccup hiccup)
