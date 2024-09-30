@@ -62,7 +62,16 @@
          {:tag-name "div" :class #{"ok"}}))
 
   (is (= (sut/get-hiccup-headers [:div {:class "btn  btn-primary"}])
-         {:tag-name "div" :class #{"btn" "btn-primary"}})))
+         {:tag-name "div" :class #{"btn" "btn-primary"}}))
+
+  (is (= (sut/get-hiccup-headers
+          [:sweeper.ui/cell
+           {:covered? true
+            :actions {:click [[:action/reveal-tile "1"]]}}])
+         {:tag-name "sweeper.ui/cell"
+          :covered? true
+          :class #{}
+          :actions {:click [[:action/reveal-tile "1"]]}})))
 
 (defn matches? [selector hiccup]
   (sut/matches? (sut/parse-selector selector) hiccup))

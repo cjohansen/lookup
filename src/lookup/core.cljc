@@ -3,12 +3,6 @@
             [clojure.string :as str]
             [clojure.walk :as walk]))
 
-(defn ^:no-doc stringify-selector [selector]
-  (if (keyword? selector)
-    (str (when-let [ns (namespace selector)]
-           (str ns "/")) (name selector))
-    (str selector)))
-
 (defn ^:no-doc add-result [res k v]
   (case k
     :class (update res k #(conj (set %) v))
@@ -45,29 +39,30 @@
                        :val (str/join val)})))))
 
 (defn ^:no-doc parse-selector [selector]
-  (loop [sym (seq (stringify-selector selector))
-         k :tag-name
-         s []
-         res {}]
-    (if-let [char (first sym)]
-      (cond
-        (= \. char)
-        (recur (next sym) :class [] (add-result res k (str/join s)))
+  (let [ns (when (keyword? selector) (namespace selector))]
+    (loop [sym (seq (if (keyword? selector) (name selector) (str selector)))
+           k :tag-name
+           s (if ns (vec (str ns "/")) [])
+           res {}]
+      (if-let [char (first sym)]
+        (cond
+          (= \. char)
+          (recur (next sym) :class [] (add-result res k (str/join s)))
 
-        (= \# char)
-        (recur (next sym) :id [] (add-result res k (str/join s)))
+          (= \# char)
+          (recur (next sym) :id [] (add-result res k (str/join s)))
 
-        (= \: char)
-        (recur (next sym) :pseudo-class [] (add-result res k (str/join s)))
+          (= \: char)
+          (recur (next sym) :pseudo-class [] (add-result res k (str/join s)))
 
-        (= \[ char)
-        (let [[v syms] (parse-attr-selector (next sym))]
-          (recur syms k s (add-result res :attrs v)))
+          (= \[ char)
+          (let [[v syms] (parse-attr-selector (next sym))]
+            (recur syms k s (add-result res :attrs v)))
 
-        :else
-        (recur (next sym) k (conj s char) res))
-      (cond-> res
-        (not-empty s) (add-result k (str/join s))))))
+          :else
+          (recur (next sym) k (conj s char) res))
+        (cond-> res
+          (not-empty s) (add-result k (str/join s)))))))
 
 (defn ^:no-doc parse-classes [class]
   (cond
