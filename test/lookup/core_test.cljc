@@ -161,7 +161,17 @@
                             [:li "Not unique"]
                             [:li "Not unique"]])
            [[:li "Not unique"]
-            [:li "Not unique"]]))))
+            [:li "Not unique"]])))
+
+  (testing "Can select namespaced aliases"
+    (is (= (sut/select :ui/button [:ui/button {:text "Click it!"}])
+           [[:ui/button {:text "Click it!"}]]))
+
+    (is (= (sut/select :ui.elements/button [:ui.elements/button {:text "Click it!"}])
+           [[:ui.elements/button {:text "Click it!"}]]))
+
+    (is (= (sut/select 'ui/button [:ui/button {:text "Click it!"}])
+           [[:ui/button {:text "Click it!"}]]))))
 
 (deftest normalize-test
   (is (= (sut/normalize-hiccup hiccup)
