@@ -21,13 +21,13 @@ Lookup is a testing library for hiccup-like data, and it helps you:
 With tools.deps:
 
 ```clj
-no.cjohansen/lookup {:mvn/version "2024.09.29"}
+no.cjohansen/lookup {:mvn/version "2024.09.30"}
 ```
 
 With Leiningen:
 
 ```clj
-[no.cjohansen/lookup "2024.09.29"]
+[no.cjohansen/lookup "2024.09.30"]
 ```
 
 <a id="find"></a>
@@ -57,7 +57,7 @@ match `li` elements with a direct `ul` parent.
    [:p "Paragraph 2"]])
 
 (lookup/select '[ul > li a])
-;;=> #{[:a {:href "#"} "C"]}
+;;=> [[:a {:href "#"} "C"]]
 ```
 
 Supported selector symbols:
