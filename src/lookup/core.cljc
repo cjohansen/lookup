@@ -191,11 +191,11 @@
        (tree-seq subtree? identity)
        (filter hiccup?)))
 
-(defn ^:no-doc get-children [node]
-  (drop 2 node))
+(defn ^:export children [node]
+  (drop (if (map? (second node)) 2 1) node))
 
 (defn ^:no-doc get-descendants [node]
-  (->> (get-children node)
+  (->> (children node)
        get-nodes))
 
 (defn ^:no-doc get-next-sibling [index node]
@@ -229,7 +229,7 @@
               [path matches]
               (cond
                 (= '> (first rest-selectors))
-                [(next rest-selectors) (mapcat get-children matching-nodes)]
+                [(next rest-selectors) (mapcat children matching-nodes)]
 
                 (= '+ (first rest-selectors))
                 [(next rest-selectors) (map #(get-next-sibling index %) matching-nodes)]
@@ -244,7 +244,9 @@
                 [rest-selectors (mapcat get-descendants matching-nodes)])]
           (recur path matches))))))
 
-(defn attrs [hiccup]
+(defn ^:export attrs
+  "Returns the hiccup node's attributes"
+  [hiccup]
   (when (map? (second hiccup))
     (second hiccup)))
 
