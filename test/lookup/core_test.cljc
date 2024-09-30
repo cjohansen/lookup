@@ -2,6 +2,14 @@
   (:require [clojure.test :refer [deftest testing is]]
             [lookup.core :as sut]))
 
+(deftest parse-tag-test
+  (is (= (sut/parse-tag :div) [nil "div"]))
+  (is (= (sut/parse-tag "div") [nil "div"]))
+  (is (= (sut/parse-tag 'div) [nil "div"]))
+  (is (= (sut/parse-tag :ui/alias) ["ui" "alias"]))
+  (is (= (sut/parse-tag "ui/alias") ["ui" "alias"]))
+  (is (= (sut/parse-tag 'ui/alias) ["ui" "alias"])))
+
 (deftest parse-selector-test
   (is (= (sut/parse-selector 'div) {:tag-name "div"}))
   (is (= (sut/parse-selector :my/alias) {:tag-name "my/alias"}))
@@ -171,7 +179,10 @@
            [[:ui.elements/button {:text "Click it!"}]]))
 
     (is (= (sut/select 'ui/button [:ui/button {:text "Click it!"}])
-           [[:ui/button {:text "Click it!"}]])))
+           [[:ui/button {:text "Click it!"}]]))
+
+    (is (= (sut/select "ui.elements/button" [:ui.elements/button {:text "Click it!"}])
+           [[:ui.elements/button {:text "Click it!"}]])))
 
   (testing "Does not trip on hiccup-like tuples"
     (is (= (sut/select 'ui/button [:ui/button {:actions [[:action/alert "Lol!"]]}])

@@ -38,9 +38,19 @@
                        :f (str/join f)
                        :val (str/join val)})))))
 
+(defn parse-tag [selector]
+  (if (keyword? selector)
+    [(namespace selector) (name selector)]
+    (let [selector (str selector)
+          slash (.indexOf selector "/")]
+      (if (<= 0 slash)
+        [(.substring selector 0 slash)
+         (.substring selector (inc slash))]
+        [nil selector]))))
+
 (defn ^:no-doc parse-selector [selector]
-  (let [ns (when (keyword? selector) (namespace selector))]
-    (loop [sym (seq (if (keyword? selector) (name selector) (str selector)))
+  (let [[ns tag] (parse-tag selector)]
+    (loop [sym (seq tag)
            k :tag-name
            s (if ns (vec (str ns "/")) [])
            res {}]
