@@ -56,7 +56,7 @@ match `li` elements with a direct `ul` parent.
    [:h1 "Heading"]
    [:p "Paragraph 2"]])
 
-(lookup/select '[ul > li a])
+(lookup/select '[ul > li a] hiccup)
 ;;=> [[:a {:href "#"} "C"]]
 ```
 
