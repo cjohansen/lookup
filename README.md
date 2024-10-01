@@ -123,7 +123,7 @@ something that's better suited for human reading, employ `:strip-empty-attrs?`:
 (require '[lookup.core :as lookup])
 
 (lookup/normalize-hiccup
- [:div
+[:div
   [:ul
    nil
    [:li {} "One"]
@@ -148,6 +148,24 @@ something that's better suited for human reading, employ `:strip-empty-attrs?`:
 ;;   "Paragraph 1"]
 ;;  [:h1 "Heading"]
 ;;  [:p "Paragraph 2"]]
+```
+
+To make assertions about the normalized hiccup, you can use `lookup.core/attrs`
+and `lookup.core/children`, which both take a hiccup form and returns the
+corresponding details:
+
+```clj
+(require '[lookup.core :as lookup])
+
+(def hiccup
+  [:p {:class "text-sm fg-red"}
+   "Paragraph " [:strong "1"]])
+
+(lookup/attrs hiccup)
+;;=> {:class "text-sm fg-red"}
+
+(lookup/children hiccup)
+;;=> ("Paragraph " [:strong "1"])
 ```
 
 <a id="extract-text"></a>
