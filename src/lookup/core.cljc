@@ -144,16 +144,15 @@
 
 (defn ^:no-doc flatten-seqs* [xs coll]
   (reduce
-   (fn [_ x]
+   (fn [coll x]
      (if (seq? x)
        (flatten-seqs* x coll)
        (conj! coll x)))
-   nil xs))
+   coll xs))
 
 (defn ^:no-doc flatten-seqs [xs]
   (let [coll (transient [])]
-    (flatten-seqs* xs coll)
-    (persistent! coll)))
+    (persistent! (flatten-seqs* xs coll))))
 
 (defn ^:no-doc normalize-attrs [headers]
   (cond-> (dissoc headers :tag-name :children ::path)
