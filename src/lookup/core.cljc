@@ -265,14 +265,19 @@
   "Return only text from the hiccup structure; remove
    all tags and attributes"
   [hiccup]
-  (str/join
-   " "
-   (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
-                    flatten-seqs
-                    (remove nil?))]
-     (if (hiccup? child)
-       (text child)
-       (str child)))))
+  (cond
+    (hiccup? hiccup)
+    (str/join
+     " "
+     (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
+                      flatten-seqs
+                      (remove nil?))]
+       (if (hiccup? child)
+         (text child)
+         (str child))))
+
+    (coll? hiccup)
+    (str/join " " (keep text hiccup))))
 
 ;; For backwards compatibility
 (def ^:export get-text text)
