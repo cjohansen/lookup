@@ -261,7 +261,7 @@
   (when (map? (second hiccup))
     (second hiccup)))
 
-(defn get-text
+(defn text
   "Return only text from the hiccup structure; remove
    all tags and attributes"
   [hiccup]
@@ -271,5 +271,8 @@
                     flatten-seqs
                     (remove nil?))]
      (if (hiccup? child)
-       (get-text child)
+       (text child)
        (str child)))))
+
+;; For backwards compatibility
+(def ^:export get-text text)

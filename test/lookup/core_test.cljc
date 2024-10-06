@@ -217,11 +217,11 @@
           [:h1 "Heading"]
           [:p "Paragraph 2"]])))
 
-(deftest get-text-test
-  (is (= (sut/get-text hiccup)
+(deftest text-test
+  (is (= (sut/text hiccup)
          "B1 C D1 E Paragraph 1 Heading Paragraph 2"))
 
-  (is (= (sut/get-text
+  (is (= (sut/text
           [:div
            [:ul
             nil
