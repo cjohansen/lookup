@@ -194,3 +194,28 @@ corresponding details:
 
 ;;=> "One Two Three Four Paragraph 1 Heading Paragraph 2"
 ```
+
+`text` also works on collections of hiccup nodes, and can be used in conjunction
+with `select`:
+
+```clj
+(require '[lookup.core :as lookup])
+
+(def hiccup
+  [:div
+   [:ul
+    nil
+    [:li "B1"]
+    [:li.active
+     [:a {:href "#"} "C"]]
+    [:li "D1"]
+    [:li "E"]]
+   [:p "Paragraph 1"]
+   [:h1 "Heading"]
+   [:p "Paragraph 2"]])
+
+(->> hiccup
+     (lookup/select '[ul > li])
+     text)
+;;=> "B1 C D1 E"
+```

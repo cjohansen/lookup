@@ -217,6 +217,13 @@
   (is (= (sut/text hiccup)
          "B1 C D1 E Paragraph 1 Heading Paragraph 2"))
 
+  (is (= (sut/text [[:h1 "Heading"] [:h2 "Other heading"]])
+         "Heading Other heading"))
+
+  (is (= (sut/text [hiccup nil [hiccup]])
+         (str "B1 C D1 E Paragraph 1 Heading Paragraph 2 "
+              "B1 C D1 E Paragraph 1 Heading Paragraph 2")))
+
   (is (= (sut/text
           [:div
            [:ul
