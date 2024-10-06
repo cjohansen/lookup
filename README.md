@@ -171,15 +171,15 @@ corresponding details:
 <a id="extract-text"></a>
 ## Extract text content
 
-`lookup.core/get-text` returns the text content of some hiccup:
+`lookup.core/text` returns the text content of some hiccup:
 
 ```clj
 (require '[lookup.core :as lookup])
 
-(lookup/get-text [:h1 "Hello world"])
+(lookup/text [:h1 "Hello world"])
 ;;=> "Hello world"
 
-(lookup/get-text
+(lookup/text
  [:div
   [:ul
    nil
