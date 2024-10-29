@@ -49,7 +49,34 @@
 
   (is (= (sut/parse-selector ".btn:first-child:last-child")
          {:class #{"btn"}
-          :pseudo-class #{"first-child" "last-child"}})))
+          :pseudo-class #{"first-child" "last-child"}}))
+
+  (is (= (sut/parse-selector "li:has(+ li.disabled)")
+         {:tag-name "li"
+          :fns #{{:f "has"
+                  :selectors [['+ "li.disabled"]]}}}))
+
+  (is (= (sut/parse-selector "div:has(ul, ol)")
+         {:tag-name "div"
+          :fns #{{:f "has"
+                  :selectors [["ul"]
+                              ["ol"]]}}}))
+
+  (is (= (sut/parse-selector "div:has(ul):has(ol)")
+         {:tag-name "div"
+          :fns #{{:f "has", :selectors [["ul"]]}
+                 {:f "has", :selectors [["ol"]]}}}))
+
+  (is (= (sut/parse-selector "div:has(ul li  , ol  li )")
+         {:tag-name "div"
+          :fns #{{:f "has"
+                  :selectors [["ul" "li"]
+                              ["ol" "li"]]}}}))
+
+  (is (= (sut/parse-selector "li:is(.disabled)")
+         {:tag-name "li"
+          :fns #{{:f "is"
+                  :selectors [[".disabled"]]}}})))
 
 (deftest get-hiccup-headers-test
   (is (= (sut/get-hiccup-headers [:div]) {:tag-name "div"}))
@@ -82,7 +109,10 @@
           :actions {:click [[:action/reveal-tile "1"]]}})))
 
 (defn matches? [selector hiccup]
-  (sut/matches? (sut/parse-selector selector) hiccup))
+  (sut/matches?
+   (sut/index-tree (sut/normalize-tree hiccup []))
+   (sut/parse-selector selector)
+   hiccup))
 
 (deftest matches?-test
   (is (true? (matches? 'div [:div])))
@@ -127,7 +157,10 @@
   (is (true? (matches? "h1[lang*=NO]" [:h1 {:lang "nb-NO"} "Hello"])))
   (is (false? (matches? "h1[lang*=GB]" [:h1 {:lang "nb-NO"} "Hello"])))
   (is (false? (matches? "h1[lang*=btn]" [:h1.btn "Hello"])))
-  (is (true? (matches? "h1[class*=primary]" [:h1.btn-primary-lul "Hello"]))))
+  (is (true? (matches? "h1[class*=primary]" [:h1.btn-primary-lul "Hello"])))
+  (is (true? (matches? "h1:has(a)" [:h1 [:a "Hello"]])))
+  (is (false? (matches? "h1:has(a)" [:h1 [:span "Hello"]])))
+  (is (false? (matches? "h1:has(a)" [:h1 "Hello"]))))
 
 (def hiccup
   [:div
@@ -145,6 +178,19 @@
 (deftest select-test
   (is (= (sut/select '[ul > li a] hiccup)
          [[:a {:href "#"} "C"]]))
+
+  (is (= (sut/select '[a + strong > span]
+           [:h1
+            [:a "Hello"]
+            [:strong [:span "there!"]]])
+         [[:span "there!"]]))
+
+  (is (= (sut/select "li:has(a)" hiccup)
+         [[:li {:class #{"active"}, :replicant/key "C"} [:a {:href "#"} "C"]]]))
+
+  (is (= (-> (sut/select "ul:has(li + li.active)" hiccup)
+             ffirst)
+         :ul))
 
   (is (= (sut/select '[ul > a] hiccup) []))
 
