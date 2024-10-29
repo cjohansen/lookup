@@ -4,10 +4,8 @@
             [clojure.walk :as walk]))
 
 (defn ^:no-doc add-result [res k v]
-  (case k
-    :class (update res k #(conj (set %) v))
-    :pseudo-class (update res k #(conj (set %) v))
-    :attrs (update res k #(conj (set %) v))
+  (if (#{:class :pseudo-class :attrs :res :fns} k)
+    (update res k #(conj (set %) v))
     (when (not-empty v)
       (assoc res k v))))
 
@@ -38,6 +36,34 @@
                        :f (str/join f)
                        :val (str/join val)})))))
 
+(defn ^:no-doc parse-fn [f syms]
+  (let [add-s #(cond
+                 (= [\+] %2) (conj %1 '+)
+                 (= [\>] %2) (conj %1 '>)
+                 (seq %2) (conj %1 (str/join %2))
+                 :else %1)
+        conj? #(cond-> %1 %2 (conj %2))
+        [selectors syms]
+        (loop [[sym & syms] syms
+               res []
+               selector []
+               s []]
+          (cond
+            (= \) sym)
+            [(conj res (add-s selector s)) syms]
+
+            (= \, sym)
+            (recur syms (conj? res (add-s selector s)) [] [])
+
+            (= \space sym)
+            (recur syms res (add-s selector s) [])
+
+            :else
+            (recur syms res selector (conj s sym))))]
+    [{:f f
+      :selectors selectors}
+     syms]))
+
 (defn parse-tag [selector]
   (if (keyword? selector)
     [(namespace selector) (name selector)]
@@ -63,11 +89,16 @@
           (recur (next sym) :id [] (add-result res k (str/join s)))
 
           (= \: char)
-          (recur (next sym) :pseudo-class [] (add-result res k (str/join s)))
+          (recur (next sym) :pseudo-class [] (cond-> res
+                                               (seq s) (add-result k (str/join s))))
 
           (= \[ char)
           (let [[v syms] (parse-attr-selector (next sym))]
             (recur syms k s (add-result res :attrs v)))
+
+          (= \( char)
+          (let [[v syms] (parse-fn (str/join s) (next sym))]
+            (recur syms k [] (add-result res :fns v)))
 
           :else
           (recur (next sym) k (conj s char) res))
@@ -120,11 +151,18 @@
     "first-child" (= 0 (last path))
     "last-child" (= path (-> (get index (butlast path)) last meta :path))))
 
+(declare select*)
+
+(defn fn-match? [index hiccup-headers {:keys [f selectors]}]
+  (case f
+    "has" (every? #(seq (select* index % (:children hiccup-headers))) selectors)))
+
 (defn ^:no-doc matches-1? [index hiccup-headers k v]
   (case k
     :class (set/subset? v (k hiccup-headers))
     :attrs (every? #(attr-match? hiccup-headers %) v)
     :pseudo-class (every? #(pseudo-class-match? index hiccup-headers %) v)
+    :fns (every? #(fn-match? index hiccup-headers %) v)
     (= (k hiccup-headers) v)))
 
 (defn ^:no-doc matches?
@@ -218,42 +256,48 @@
 (defn ^:no-doc strip-attrs [hiccup]
   (into [(first hiccup)] (rest (rest hiccup))))
 
-(defn select
+(defn ^:no-doc resolve-combinator [index parsed-selector nodes]
+  (cond
+    (= '> (first parsed-selector))
+    [(next parsed-selector) (mapcat children nodes)]
+
+    (= '+ (first parsed-selector))
+    [(next parsed-selector) (map #(get-next-sibling index %) nodes)]
+
+    (= "~" (str (first parsed-selector)))
+    [(next parsed-selector) (mapcat #(get-subsequent-siblings index %) nodes)]
+
+    (empty? parsed-selector)
+    [parsed-selector nodes]
+
+    :else
+    [parsed-selector (mapcat get-descendants nodes)]))
+
+(defn ^:no-doc select* [index selector nodes]
+  (loop [path selector
+         nodes nodes]
+    (if (empty? path)
+      (walk/postwalk
+       #(cond-> %
+          (= :text-node (:kind %)) :text
+          (and (hiccup? %)
+               (or (nil? (second %)) (map? (second %)))
+               (empty? (second %))) strip-attrs)
+       nodes)
+      (let [[path matches] (->> nodes
+                                (filter (partial matches? index (parse-selector (first path))))
+                                (resolve-combinator index (next path)))]
+        (recur path matches)))))
+
+(defn ^{:indent 1} select
   "Select nodes in `hiccup` matching the CSS `selector`"
   [selector hiccup]
   (if (and (not (hiccup? hiccup)) (coll? hiccup))
     (mapcat #(select selector %) hiccup)
-    (let [hiccup (normalize-tree hiccup [])
-          index (index-tree hiccup)]
-      (loop [path (if (coll? selector) selector [selector])
-             nodes (get-nodes hiccup)]
-        (if (empty? path)
-          (walk/postwalk
-           #(cond-> %
-              (= :text-node (:kind %)) :text
-              (and (hiccup? %)
-                   (or (nil? (second %)) (map? (second %)))
-                   (empty? (second %))) strip-attrs)
-           nodes)
-          (let [matching-nodes (filter (partial matches? index (parse-selector (first path))) nodes)
-                rest-selectors (next path)
-                [path matches]
-                (cond
-                  (= '> (first rest-selectors))
-                  [(next rest-selectors) (mapcat children matching-nodes)]
-
-                  (= '+ (first rest-selectors))
-                  [(next rest-selectors) (map #(get-next-sibling index %) matching-nodes)]
-
-                  (= "~" (str (first rest-selectors)))
-                  [(next rest-selectors) (mapcat #(get-subsequent-siblings index %) matching-nodes)]
-
-                  (empty? rest-selectors)
-                  [rest-selectors matching-nodes]
-
-                  :else
-                  [rest-selectors (mapcat get-descendants matching-nodes)])]
-            (recur path matches)))))))
+    (let [normalized (normalize-tree hiccup [])]
+      (->> normalized
+           get-nodes
+           (select* (index-tree normalized) (if (coll? selector) selector [selector]))))))
 
 (defn ^:export attrs
   "Returns the hiccup node's attributes"
