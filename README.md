@@ -21,13 +21,13 @@ Lookup is a testing library for hiccup-like data, and it helps you:
 With tools.deps:
 
 ```clj
-no.cjohansen/lookup {:mvn/version "2024.10.01"}
+no.cjohansen/lookup {:mvn/version "2024.10.29"}
 ```
 
 With Leiningen:
 
 ```clj
-[no.cjohansen/lookup "2024.10.01"]
+[no.cjohansen/lookup "2024.10.29"]
 ```
 
 <a id="find"></a>
@@ -75,6 +75,7 @@ Supported selector symbols:
 - `'"meta[property]"` matches all meta tags with the property attribute.
 - `'"meta[property=og:title]"` matches all meta tags with the property
   attribute set to "og:title".
+- `h1:has(a)` matches all h1 elements that contain the provided selector
 
 Additionally supports all [attribute selector
 operators](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors).
