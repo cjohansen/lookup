@@ -186,7 +186,11 @@
 
   (testing "Does not trip on hiccup-like tuples"
     (is (= (sut/select 'ui/button [:ui/button {:actions [[:action/alert "Lol!"]]}])
-           [[:ui/button {:actions [[:action/alert "Lol!"]]}]]))))
+           [[:ui/button {:actions [[:action/alert "Lol!"]]}]])))
+
+  (testing "Does not trip on lists"
+    (is (= (sut/select 'a (list [:html [:body [:a "Lol!"]]]))
+           [[:a "Lol!"]]))))
 
 (deftest normalize-test
   (is (= (sut/normalize-hiccup hiccup)

@@ -221,37 +221,39 @@
 (defn select
   "Select nodes in `hiccup` matching the CSS `selector`"
   [selector hiccup]
-  (let [hiccup (normalize-tree hiccup [])
-        index (index-tree hiccup)]
-    (loop [path (if (coll? selector) selector [selector])
-           nodes (get-nodes hiccup)]
-      (if (empty? path)
-        (walk/postwalk
-         #(cond-> %
-            (= :text-node (:kind %)) :text
-            (and (hiccup? %)
-                 (or (nil? (second %)) (map? (second %)))
-                 (empty? (second %))) strip-attrs)
-         nodes)
-        (let [matching-nodes (filter (partial matches? index (parse-selector (first path))) nodes)
-              rest-selectors (next path)
-              [path matches]
-              (cond
-                (= '> (first rest-selectors))
-                [(next rest-selectors) (mapcat children matching-nodes)]
+  (if (and (not (hiccup? hiccup)) (coll? hiccup))
+    (mapcat #(select selector %) hiccup)
+    (let [hiccup (normalize-tree hiccup [])
+          index (index-tree hiccup)]
+      (loop [path (if (coll? selector) selector [selector])
+             nodes (get-nodes hiccup)]
+        (if (empty? path)
+          (walk/postwalk
+           #(cond-> %
+              (= :text-node (:kind %)) :text
+              (and (hiccup? %)
+                   (or (nil? (second %)) (map? (second %)))
+                   (empty? (second %))) strip-attrs)
+           nodes)
+          (let [matching-nodes (filter (partial matches? index (parse-selector (first path))) nodes)
+                rest-selectors (next path)
+                [path matches]
+                (cond
+                  (= '> (first rest-selectors))
+                  [(next rest-selectors) (mapcat children matching-nodes)]
 
-                (= '+ (first rest-selectors))
-                [(next rest-selectors) (map #(get-next-sibling index %) matching-nodes)]
+                  (= '+ (first rest-selectors))
+                  [(next rest-selectors) (map #(get-next-sibling index %) matching-nodes)]
 
-                (= "~" (str (first rest-selectors)))
-                [(next rest-selectors) (mapcat #(get-subsequent-siblings index %) matching-nodes)]
+                  (= "~" (str (first rest-selectors)))
+                  [(next rest-selectors) (mapcat #(get-subsequent-siblings index %) matching-nodes)]
 
-                (empty? rest-selectors)
-                [rest-selectors matching-nodes]
+                  (empty? rest-selectors)
+                  [rest-selectors matching-nodes]
 
-                :else
-                [rest-selectors (mapcat get-descendants matching-nodes)])]
-          (recur path matches))))))
+                  :else
+                  [rest-selectors (mapcat get-descendants matching-nodes)])]
+            (recur path matches)))))))
 
 (defn ^:export attrs
   "Returns the hiccup node's attributes"
