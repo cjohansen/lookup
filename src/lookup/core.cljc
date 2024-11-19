@@ -144,7 +144,7 @@
       "^=" (str/starts-with? (stringify actual) val)
       "$=" (str/ends-with? (stringify actual) val)
       "*=" (str/includes? (stringify actual) val)
-      (contains? hiccup-headers attr))))
+      (get hiccup-headers attr))))
 
 (defn ^:no-doc pseudo-class-match? [index {::keys [path]} pc]
   (case pc
