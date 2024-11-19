@@ -60,6 +60,9 @@ match `li` elements with a direct `ul` parent.
 ;;=> [[:a {:href "#"} "C"]]
 ```
 
+`(lookup.core/select-one selector hiccup)` returns the first element matching
+the selector.
+
 Supported selector symbols:
 
 - `'a` matches all anchor tags.

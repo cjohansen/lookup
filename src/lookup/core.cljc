@@ -299,6 +299,9 @@
            get-nodes
            (select* (index-tree normalized) (if (coll? selector) selector [selector]))))))
 
+(defn ^{:indent 1} select-one [selector hiccup]
+  (first (select selector hiccup)))
+
 (defn ^:export attrs
   "Returns the hiccup node's attributes"
   [hiccup]
