@@ -264,7 +264,10 @@
            [:li {:replicant/key "E"} "E"]]
           [:p "Paragraph 1"]
           [:h1 "Heading"]
-          [:p "Paragraph 2"]])))
+          [:p "Paragraph 2"]]))
+
+  (is (= (sut/normalize-hiccup [:a {:class :clickable} "Hello"])
+         [:a {:class #{"clickable"}} "Hello"])))
 
 (deftest text-test
   (is (= (sut/text hiccup)

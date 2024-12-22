@@ -108,7 +108,8 @@
 (defn ^:no-doc parse-classes [class]
   (cond
     (coll? class) class
-    (string? class) (str/split class #" +")))
+    (string? class) (str/split class #" +")
+    (keyword? class) [(name class)]))
 
 (defn ^:no-doc get-hiccup-headers [hiccup]
   (let [headers (parse-selector (first hiccup))
