@@ -267,6 +267,9 @@
           [:p "Paragraph 2"]]))
 
   (is (= (sut/normalize-hiccup [:a {:class :clickable} "Hello"])
+         [:a {:class #{"clickable"}} "Hello"]))
+
+  (is (= (sut/normalize-hiccup [:a {:class [:clickable]} "Hello"])
          [:a {:class #{"clickable"}} "Hello"])))
 
 (deftest text-test
