@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <groupId>no.cjohansen</groupId>
   <artifactId>lookup</artifactId>
-  <version>2024.12.22</version>
+  <version>2024.12.23</version>
   <name>lookup</name>
   <dependencies>
   </dependencies>
@@ -34,7 +34,7 @@
   <scm>
     <connection>scm:git:git://github.com/cjohansen/lookup.git</connection>
     <developerConnection>scm:git:ssh://git@github.com/cjohansen/lookup.git</developerConnection>
-    <tag>v2024.12.22</tag>
+    <tag>v2024.12.23</tag>
     <url>https://github.com/cjohansen/lookup</url>
   </scm>
 </project>
