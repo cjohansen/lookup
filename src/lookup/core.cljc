@@ -309,6 +309,11 @@
   (when (map? (second hiccup))
     (second hiccup)))
 
+(defn ^:export children
+  "Returns the hiccup node's children"
+  [hiccup]
+  (drop 2 (normalize-hiccup hiccup)))
+
 (defn text
   "Return only text from the hiccup structure; remove
    all tags and attributes"

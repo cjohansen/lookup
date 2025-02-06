@@ -239,6 +239,10 @@
 
   (testing "Does not trip on lists"
     (is (= (sut/select 'a (list [:html [:body [:a "Lol!"]]]))
+           [[:a "Lol!"]])))
+
+  (testing "Selects anything"
+    (is (= (sut/select '[body > *] (list [:html [:body [:a "Lol!"]]]))
            [[:a "Lol!"]]))))
 
 (deftest normalize-test
@@ -296,3 +300,20 @@
            '([:h1 "Heading"]
              [:p "Paragraph 2"])])
          "One Two Three Four Paragraph 1 Heading Paragraph 2")))
+
+(deftest children-test
+  (is (= (sut/children hiccup)
+         '([:ul {}
+            [:li {:replicant/key "B1"} "B1"]
+            [:li {:replicant/key "C" :class #{"active"}} [:a {:href "#"} "C"]]
+            [:li {:replicant/key "D1"} "D1"]
+            [:li {:replicant/key "E"} "E"]]
+           [:p {} "Paragraph 1"]
+           [:h1 {} "Heading"]
+           [:p {} "Paragraph 2"])))
+
+  (is (= (->> (sut/children hiccup)
+              (drop 1)
+              first
+              sut/children)
+         '("Paragraph 1"))))
