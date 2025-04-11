@@ -239,11 +239,11 @@
        (tree-seq subtree? identity)
        (filter hiccup?)))
 
-(defn ^:export children [node]
+(defn ^:no-doc raw-children [node]
   (drop (if (map? (second node)) 2 1) node))
 
 (defn ^:no-doc get-descendants [node]
-  (->> (children node)
+  (->> (raw-children node)
        get-nodes))
 
 (defn ^:no-doc get-next-sibling [index node]
@@ -260,7 +260,7 @@
 (defn ^:no-doc resolve-combinator [index parsed-selector nodes]
   (cond
     (= '> (first parsed-selector))
-    [(next parsed-selector) (mapcat children nodes)]
+    [(next parsed-selector) (mapcat raw-children nodes)]
 
     (= '+ (first parsed-selector))
     [(next parsed-selector) (map #(get-next-sibling index %) nodes)]
