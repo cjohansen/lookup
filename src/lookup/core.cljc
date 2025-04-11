@@ -318,6 +318,15 @@
          (drop 1 hiccup))
        (map #(normalize-hiccup % {:strip-empty-attrs? true}))))
 
+(defn ^:export first-child
+  "Returns the hiccup node's first child"
+  [node]
+  (first (children node)))
+
+(defn ^:export last-child
+  "Returns the hiccup node's last child"
+  [node]
+  (last (children node)))
 
 (defn text
   "Return only text from the hiccup structure; remove
