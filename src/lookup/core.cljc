@@ -323,12 +323,13 @@
     (hiccup? hiccup)
     (str/join
      " "
-     (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
-                      flatten-seqs
-                      (remove nil?))]
-       (if (hiccup? child)
-         (text child)
-         (str child))))
+     (->> (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
+                           flatten-seqs
+                           (remove nil?))]
+            (if (hiccup? child)
+              (text child)
+              (str child)))
+          (remove empty?)))
 
     (coll? hiccup)
     (str/join " " (keep text hiccup))))

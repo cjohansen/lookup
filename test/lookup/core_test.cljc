@@ -299,7 +299,15 @@
            [:p {:class "text-sm fg-red"} "Paragraph 1"]
            '([:h1 "Heading"]
              [:p "Paragraph 2"])])
-         "One Two Three Four Paragraph 1 Heading Paragraph 2")))
+         "One Two Three Four Paragraph 1 Heading Paragraph 2"))
+
+  (is (= (sut/text
+          [:html
+           [:head
+            [:meta {:charset "UTF-8"}]]
+           [:body
+            [:div "Hello World"]]])
+         "Hello World")))
 
 (deftest children-test
   (is (= (sut/children hiccup)
