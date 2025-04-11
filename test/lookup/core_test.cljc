@@ -311,14 +311,14 @@
 
 (deftest children-test
   (is (= (sut/children hiccup)
-         '([:ul {}
+         '([:ul
             [:li {:replicant/key "B1"} "B1"]
             [:li {:replicant/key "C" :class #{"active"}} [:a {:href "#"} "C"]]
             [:li {:replicant/key "D1"} "D1"]
             [:li {:replicant/key "E"} "E"]]
-           [:p {} "Paragraph 1"]
-           [:h1 {} "Heading"]
-           [:p {} "Paragraph 2"])))
+           [:p "Paragraph 1"]
+           [:h1 "Heading"]
+           [:p "Paragraph 2"])))
 
   (is (= (->> (sut/children hiccup)
               (drop 1)

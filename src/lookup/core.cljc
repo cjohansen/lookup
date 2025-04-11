@@ -313,7 +313,11 @@
 (defn ^:export children
   "Returns the hiccup node's children"
   [hiccup]
-  (drop 2 (normalize-hiccup hiccup)))
+  (->> (if (map? (second hiccup))
+         (drop 2 hiccup)
+         (drop 1 hiccup))
+       (map #(normalize-hiccup % {:strip-empty-attrs? true}))))
+
 
 (defn text
   "Return only text from the hiccup structure; remove
