@@ -301,7 +301,7 @@
            get-nodes
            (select* (index-tree normalized) (if (coll? selector) selector [selector]))))))
 
-(defn ^{:indent 1} select-one [selector hiccup]
+(defn ^{:indent 1 :export true} select-one [selector hiccup]
   (first (select selector hiccup)))
 
 (defn ^:export attrs
