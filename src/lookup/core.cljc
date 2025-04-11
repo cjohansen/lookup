@@ -164,6 +164,7 @@
     :attrs (every? #(attr-match? hiccup-headers %) v)
     :pseudo-class (every? #(pseudo-class-match? index hiccup-headers %) v)
     :fns (every? #(fn-match? index hiccup-headers %) v)
+    :tag-name (or (= "*" (str v)) (= (k hiccup-headers) v))
     (= (k hiccup-headers) v)))
 
 (defn ^:no-doc matches?
