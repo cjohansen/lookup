@@ -328,13 +328,36 @@
   [node]
   (last (children node)))
 
+(defn needs-separator? [p n sep]
+  (and p n
+       (not (when (string? p)
+              (str/ends-with? p sep)))
+       (not (when (string? n)
+              (str/starts-with? n sep)))))
+
+(defn soft-join
+  "Like clojure.string/join, except does not add `sep` between elements that end
+  start with it."
+  [sep xs]
+  (loop [xs (seq xs)
+         res []
+         prev-s nil]
+    (if (nil? xs)
+      (apply str res)
+      (let [next-s (first xs)]
+        (recur (next xs)
+               (cond-> res
+                 (needs-separator? prev-s next-s sep) (conj sep)
+                 :then (conj next-s))
+               next-s)))))
+
 (defn text
   "Return only text from the hiccup structure; remove
    all tags and attributes"
   [hiccup]
   (cond
     (hiccup? hiccup)
-    (str/join
+    (soft-join
      " "
      (->> (for [child (->> (drop (if (map? (second hiccup)) 2 1) hiccup)
                            flatten-seqs
@@ -345,7 +368,7 @@
           (remove empty?)))
 
     (coll? hiccup)
-    (str/join " " (keep text hiccup))))
+    (soft-join " " (keep text hiccup))))
 
 ;; For backwards compatibility
 (def ^:export get-text text)
