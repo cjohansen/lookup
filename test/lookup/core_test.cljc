@@ -245,6 +245,12 @@
     (is (= (sut/select '[body > *] (list [:html [:body [:a "Lol!"]]]))
            [[:a "Lol!"]]))))
 
+(deftest select-one-test
+  (testing "Ignores nil classes"
+    (is (= (->> [:div {:class [nil "more" "classes" "here"]}]
+                (sut/select-one ["div"]))
+           [:div {:class #{"more" "classes" "here"}}]))))
+
 (deftest normalize-test
   (is (= (sut/normalize-hiccup hiccup)
          [:div {}

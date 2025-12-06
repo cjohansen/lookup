@@ -107,7 +107,7 @@
 
 (defn ^:no-doc parse-classes [class]
   (cond
-    (coll? class) (map name class)
+    (coll? class) (keep #(some-> % name) class)
     (string? class) (str/split class #" +")
     (keyword? class) [(name class)]))
 
