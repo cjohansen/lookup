@@ -132,19 +132,22 @@
     (set x)))
 
 (defn ^:no-doc stringify [x]
-  (if (coll? x)
-    (str/join " " x)
-    (str x)))
+  (cond
+    (coll? x) (str/join " " x)
+    (keyword? x) (str (when-let [ns (namespace x)]
+                        (str ns "/")) (name x))
+    :else (str x)))
 
 (defn ^:no-doc attr-match? [hiccup-headers {:keys [attr f val]}]
-  (let [actual (get hiccup-headers attr)]
+  (let [actual (stringify (get hiccup-headers attr))
+        val (stringify val)]
     (case f
-      "=" (= (stringify actual) val)
+      "=" (= actual val)
       "~=" (contains? (setify actual) val)
-      "|=" (or (= actual val) (re-find (re-pattern (str "(^|\\s)" val "-")) (stringify actual)))
-      "^=" (str/starts-with? (stringify actual) val)
-      "$=" (str/ends-with? (stringify actual) val)
-      "*=" (str/includes? (stringify actual) val)
+      "|=" (or (= actual val) (re-find (re-pattern (str "(^|\\s)" val "-")) actual))
+      "^=" (str/starts-with? actual val)
+      "$=" (str/ends-with? actual val)
+      "*=" (str/includes? actual val)
       (get hiccup-headers attr))))
 
 (defn ^:no-doc pseudo-class-match? [index {::keys [path]} pc]
