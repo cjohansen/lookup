@@ -86,35 +86,41 @@
         [nil selector]))))
 
 (defn ^:no-doc parse-selector [selector]
-  (let [[ns tag] (parse-tag selector)]
-    (loop [sym (seq tag)
-           k :tag-name
-           s (if ns (vec (str ns "/")) [])
-           res {}]
-      (if-let [char (first sym)]
-        (cond
-          (= \. char)
-          (recur (next sym) :class [] (add-result res k (str/join s)))
+  (if (vector? selector)
+    (if (odd? (count selector))
+      (->> (drop 1 selector)
+           (partitionv 2)
+           (into (parse-selector (first selector))))
+      (apply hash-map selector))
+    (let [[ns tag] (parse-tag selector)]
+      (loop [sym (seq tag)
+             k :tag-name
+             s (if ns (vec (str ns "/")) [])
+             res {}]
+        (if-let [char (first sym)]
+          (cond
+            (= \. char)
+            (recur (next sym) :class [] (add-result res k (str/join s)))
 
-          (= \# char)
-          (recur (next sym) :id [] (add-result res k (str/join s)))
+            (= \# char)
+            (recur (next sym) :id [] (add-result res k (str/join s)))
 
-          (= \: char)
-          (recur (next sym) :pseudo-class [] (cond-> res
-                                               (seq s) (add-result k (str/join s))))
+            (= \: char)
+            (recur (next sym) :pseudo-class [] (cond-> res
+                                                 (seq s) (add-result k (str/join s))))
 
-          (= \[ char)
-          (let [[v syms] (parse-attr-selector (next sym))]
-            (recur syms k s (add-result res :attrs v)))
+            (= \[ char)
+            (let [[v syms] (parse-attr-selector (next sym))]
+              (recur syms k s (add-result res :attrs v)))
 
-          (= \( char)
-          (let [[v syms] (parse-fn (str/join s) (next sym))]
-            (recur syms k [] (add-result res :fns v)))
+            (= \( char)
+            (let [[v syms] (parse-fn (str/join s) (next sym))]
+              (recur syms k [] (add-result res :fns v)))
 
-          :else
-          (recur (next sym) k (conj s char) res))
-        (cond-> res
-          (not-empty s) (add-result k (str/join s)))))))
+            :else
+            (recur (next sym) k (conj s char) res))
+          (cond-> res
+            (not-empty s) (add-result k (str/join s))))))))
 
 (defn ^:no-doc parse-classes [class]
   (cond
@@ -172,13 +178,20 @@
   (case f
     "has" (every? #(seq (select* index % (:children hiccup-headers))) selectors)))
 
-(defn ^:no-doc matches-1? [index hiccup-headers k v]
+(defn hiccup-contains? [hiccup v]
+  (->> (tree-seq coll? identity hiccup)
+       (filter #{v})
+       seq
+       boolean))
+
+(defn ^:no-doc matches-1? [index hiccup hiccup-headers k v]
   (case k
     :class (set/subset? v (k hiccup-headers))
     :attrs (every? #(attr-match? hiccup-headers %) v)
     :pseudo-class (every? #(pseudo-class-match? index hiccup-headers %) v)
     :fns (every? #(fn-match? index hiccup-headers %) v)
     :tag-name (or (= "*" (str v)) (= (k hiccup-headers) v))
+    :contains (hiccup-contains? hiccup v)
     (= (k hiccup-headers) v)))
 
 (defn ^:no-doc matches?
@@ -186,7 +199,7 @@
    (matches? nil selector hiccup))
   ([index selector hiccup]
    (let [headers (get-hiccup-headers hiccup)]
-     (every? (fn [[k v]] (matches-1? index headers k v)) selector))))
+     (every? (fn [[k v]] (matches-1? index hiccup headers k v)) selector))))
 
 (defn ^:no-doc subtree? [x]
   (and (sequential? x) (not (map-entry? x))))

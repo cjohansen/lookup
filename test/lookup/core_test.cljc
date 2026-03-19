@@ -82,7 +82,11 @@
          {:tag-name "input"
           :attrs #{{:attr :name
                     :f "="
-                    :val "some/nsed-key"}}})))
+                    :val "some/nsed-key"}}}))
+
+  (is (= (sut/parse-selector [:li :contains "D1"])
+         {:tag-name "li"
+          :contains "D1"})))
 
 (deftest get-hiccup-headers-test
   (is (= (sut/get-hiccup-headers [:div]) {:tag-name "div"}))
@@ -252,7 +256,16 @@
 
   (testing "Selects anything"
     (is (= (sut/select '[body > *] (list [:html [:body [:a "Lol!"]]]))
-           [[:a "Lol!"]]))))
+           [[:a "Lol!"]])))
+
+  (testing "Selects based on containment anywhere in the sub-tree"
+    (is (= (sut/select [[:li :contains "D1"]] hiccup)
+           [[:li {:replicant/key "D1"} "D1"]])))
+
+  (testing "Selects based on containment anywhere in the sub-tree without CSS selector"
+    (is (= (->> (sut/select [[:contains "D1"]] hiccup)
+                (map first))
+           [:div :ul :li]))))
 
 (deftest select-one-test
   (testing "Ignores nil classes"

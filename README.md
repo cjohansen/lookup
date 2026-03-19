@@ -21,17 +21,17 @@ Lookup is a testing library for hiccup-like data, and it helps you:
 With tools.deps:
 
 ```clj
-no.cjohansen/lookup {:mvn/version "2026.03.1"}
+no.cjohansen/lookup {:mvn/version "2026.03.2"}
 ```
 
 With Leiningen:
 
 ```clj
-[no.cjohansen/lookup "2026.03.1"]
+[no.cjohansen/lookup "2026.03.2"]
 ```
 
 <a id="find"></a>
-## Find interesting bits with CSS selectors
+## Find interesting bits with CSS (and custom) selectors
 
 `lookup.core/select` can be used to find hiccup nodes with a CSS selector. A
 selector can be a single expression, like `'div` to find all divs, or a vector
@@ -80,8 +80,45 @@ Supported selector symbols:
   attribute set to "og:title".
 - `h1:has(a)` matches all h1 elements that contain the provided selector
 
-Additionally supports all [attribute selector
+Lookup supports all [attribute selector
 operators](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors).
+
+### The `:contains` selector
+
+This feature was introduced in `2026.03.2`.
+
+Lookup supports the custom selector `:contains`. This can used to include nodes
+in the result where the provided value exists anywhere in their sub-tree. In
+Clojure terms, `:contains` is a `tree-seq`+`filter`.
+
+Find nodes under a div that contain the word "Heading":
+
+```clj
+(lookup/select '[div [:contains "Heading"]] hiccup)
+;;=> ([:h1 "Heading"])
+```
+
+`:contains` matches any node that contains the data specified. Since containment
+is anywhere in the sub-tree, this means you will always get any parent element
+on the path to the content in question:
+
+```clj
+(lookup/select [[:contains "Heading"]] hiccup)
+;;=> ([:div [:ul ,,,] ,,,]
+;;    [:h1 "Heading"])
+```
+
+You can qualify what elements the `:contains` check should be made on by leading
+with a CSS selector.
+
+Find only `h1` elements that contain the word "Heading":
+
+```clj
+(lookup/select [[:h1 :contains "Heading"]] hiccup)
+;;=> ([:h1 "Heading"])
+```
+
+The first position can contain any valid lookup selector.
 
 <a id="normalize"></a>
 ## Normalize hiccup
