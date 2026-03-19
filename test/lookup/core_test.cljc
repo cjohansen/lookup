@@ -76,7 +76,13 @@
   (is (= (sut/parse-selector "li:is(.disabled)")
          {:tag-name "li"
           :fns #{{:f "is"
-                  :selectors [[".disabled"]]}}})))
+                  :selectors [[".disabled"]]}}}))
+
+  (is (= (sut/parse-selector "input[name=some/nsed-key]")
+         {:tag-name "input"
+          :attrs #{{:attr :name
+                    :f "="
+                    :val "some/nsed-key"}}})))
 
 (deftest get-hiccup-headers-test
   (is (= (sut/get-hiccup-headers [:div]) {:tag-name "div"}))
@@ -135,6 +141,7 @@
   (is (false? (matches? "h1[data-text]" [:h1 {:data-title "Hey"} "Hello"])))
   (is (true? (matches? "h1[data-text=Hello]" [:h1 {:data-text "Hello"} "Hello"])))
   (is (true? (matches? "h1[data-variant=primary]" [:h1 {:data-variant :primary} "Hello"])))
+  (is (true? (matches? "input[name=some/nsed-key]" [:input {:name :some/nsed-key}])))
   (is (false? (matches? "h1[data-text=hello]" [:h1 {:data-text "Hello"} "Hello"])))
   (is (true? (matches? "h1[class=title]" [:h1.title "Hello"])))
   (is (false? (matches? "h1[class=title]" [:h1.title.heading "Hello"])))

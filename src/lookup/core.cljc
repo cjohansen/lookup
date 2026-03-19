@@ -64,11 +64,22 @@
       :selectors selectors}
      syms]))
 
+(defn read-tag-chars [tag]
+  (let [n (count tag)]
+    (loop [i 0
+           res ""]
+      (if (= i n)
+        res
+        (let [char (.charAt tag i)]
+          (if (not (#{\[ \# \space} char))
+            (recur (inc i) (str res char))
+            res))))))
+
 (defn parse-tag [selector]
   (if (keyword? selector)
     [(namespace selector) (name selector)]
     (let [selector (str selector)
-          slash (.indexOf selector "/")]
+          slash (.indexOf (read-tag-chars selector) "/")]
       (if (<= 0 slash)
         [(.substring selector 0 slash)
          (.substring selector (inc slash))]
