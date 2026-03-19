@@ -71,7 +71,7 @@
       (if (= i n)
         res
         (let [char (.charAt tag i)]
-          (if (not (#{\[ \# \space} char))
+          (if (not (#{\[ \# \space \:} char))
             (recur (inc i) (str res char))
             res))))))
 
@@ -178,11 +178,15 @@
   (case f
     "has" (every? #(seq (select* index % (:children hiccup-headers))) selectors)))
 
+(defn tree-filter [f x]
+  (->> (tree-seq coll? identity x)
+       (filter f)
+       seq))
+
 (defn hiccup-contains? [hiccup v]
-  (->> (tree-seq coll? identity hiccup)
-       (filter #{v})
-       seq
-       boolean))
+  (if (= :text-node (:kind hiccup))
+    (tree-filter #{v} (:text hiccup))
+    (some #(hiccup-contains? % v) (drop 2 hiccup))))
 
 (defn ^:no-doc matches-1? [index hiccup hiccup-headers k v]
   (case k

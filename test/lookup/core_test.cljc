@@ -176,7 +176,8 @@
   (is (true? (matches? "h1[class*=primary]" [:h1.btn-primary-lul "Hello"])))
   (is (true? (matches? "h1:has(a)" [:h1 [:a "Hello"]])))
   (is (false? (matches? "h1:has(a)" [:h1 [:span "Hello"]])))
-  (is (false? (matches? "h1:has(a)" [:h1 "Hello"]))))
+  (is (false? (matches? "h1:has(a)" [:h1 "Hello"])))
+  (is (true? (matches? "p:has(i18n/key)" [:p [:i18n/key :hello]]))))
 
 (def hiccup
   [:div
@@ -258,9 +259,21 @@
     (is (= (sut/select '[body > *] (list [:html [:body [:a "Lol!"]]]))
            [[:a "Lol!"]])))
 
-  (testing "Selects based on containment anywhere in the sub-tree"
+  (testing "Selects based on containment anywhere in the sub-tree, disregarding attributes"
     (is (= (sut/select [[:li :contains "D1"]] hiccup)
-           [[:li {:replicant/key "D1"} "D1"]])))
+           [[:li {:replicant/key "D1"} "D1"]]))
+
+    (is (= (sut/select [[:li :contains :replicant/key]] hiccup)
+           []))
+
+    (is (= (sut/select [[:p :contains "Paragraph 1"]] hiccup)
+           [[:p "Paragraph 1"]]))
+
+    (is (= (sut/select [[:p :contains :hello]]
+             [:div
+              [:p [:i18n/key :hello]]
+              [:p "Hello"]])
+           [[:p [:i18n/key :hello]]])))
 
   (testing "Selects based on containment anywhere in the sub-tree without CSS selector"
     (is (= (->> (sut/select [[:contains "D1"]] hiccup)

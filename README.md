@@ -21,13 +21,13 @@ Lookup is a testing library for hiccup-like data, and it helps you:
 With tools.deps:
 
 ```clj
-no.cjohansen/lookup {:mvn/version "2026.03.2"}
+no.cjohansen/lookup {:mvn/version "2026.03.3"}
 ```
 
 With Leiningen:
 
 ```clj
-[no.cjohansen/lookup "2026.03.2"]
+[no.cjohansen/lookup "2026.03.3"]
 ```
 
 <a id="find"></a>
@@ -87,9 +87,10 @@ operators](https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors)
 
 This feature was introduced in `2026.03.2`.
 
-Lookup supports the custom selector `:contains`. This can used to include nodes
-in the result where the provided value exists anywhere in their sub-tree. In
-Clojure terms, `:contains` is a `tree-seq`+`filter`.
+The custom selector `:contains` can used to include nodes in the result where
+the provided value exists anywhere in their sub-tree contents. In Clojure terms,
+`:contains` is a `tree-seq`+`filter` on child nodes content (e.g. not tag names
+and attributes).
 
 Find nodes under a div that contain the word "Heading":
 
@@ -109,7 +110,7 @@ on the path to the content in question:
 ```
 
 You can qualify what elements the `:contains` check should be made on by leading
-with a CSS selector.
+with a selector.
 
 Find only `h1` elements that contain the word "Heading":
 
