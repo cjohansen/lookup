@@ -226,7 +226,7 @@
     (persistent! (flatten-seqs* xs coll))))
 
 (defn ^:no-doc normalize-attrs [headers]
-  (cond-> (dissoc headers :tag-name :children ::path)
+  (cond-> (with-meta (dissoc headers :tag-name :children ::path) {::attrs? true})
     (empty? (:class headers)) (dissoc :class)))
 
 (defn ^:export normalize-hiccup
@@ -315,7 +315,8 @@
           (= :text-node (:kind %)) :text
           (and (hiccup? %)
                (or (nil? (second %)) (map? (second %)))
-               (empty? (second %))) strip-attrs)
+               (empty? (second %))
+               (::attrs? (meta (second %)))) strip-attrs)
        nodes)
       (let [[path matches] (->> nodes
                                 (filter (partial matches? index (parse-selector (first path))))

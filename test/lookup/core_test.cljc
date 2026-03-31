@@ -118,6 +118,13 @@
           :class #{}
           :actions {:click [[:action/reveal-tile "1"]]}})))
 
+(deftest normalize-tree-test
+  (testing "Does not normalize attribute values"
+    (is (= (sut/normalize-tree [:button {:on {:click [[:action {} {}]]}} "Click!"] [])
+           [:button {:on {:click [[:action {} {}]]}}
+            {:kind :text-node
+             :text "Click!"}]))))
+
 (defn matches? [selector hiccup]
   (sut/matches?
    (sut/index-tree (sut/normalize-tree hiccup []))
@@ -278,7 +285,11 @@
   (testing "Selects based on containment anywhere in the sub-tree without CSS selector"
     (is (= (->> (sut/select [[:contains "D1"]] hiccup)
                 (map first))
-           [:div :ul :li]))))
+           [:div :ul :li])))
+
+  (testing "Does not remove empty maps inside attribute map"
+    (is (= (sut/select :button [:button {:on {:click [[:action {} {}]]}} "Click!"])
+           [[:button {:on {:click [[:action {} {}]]}} "Click!"]]))))
 
 (deftest select-one-test
   (testing "Ignores nil classes"
