@@ -21,13 +21,13 @@ Lookup is a testing library for hiccup-like data, and it helps you:
 With tools.deps:
 
 ```clj
-no.cjohansen/lookup {:mvn/version "2026.03.3"}
+no.cjohansen/lookup {:mvn/version "2026.03.4"}
 ```
 
 With Leiningen:
 
 ```clj
-[no.cjohansen/lookup "2026.03.3"]
+[no.cjohansen/lookup "2026.03.4"]
 ```
 
 <a id="find"></a>
