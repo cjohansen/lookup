@@ -1,6 +1,14 @@
 (ns lookup.core-test
-  (:require [clojure.test :refer [deftest testing is]]
+  (:require [clojure.test :refer [deftest is testing]]
+            [datascript.core :as ds]
             [lookup.core :as sut]))
+
+(def entity
+  (let [conn (ds/create-conn {:person/id {:db/unique :db.unique/identity}})]
+    (-> (ds/transact conn [{:person/id "pers" :person/name "Christian"}])
+        deref
+        :db-after
+        (ds/entity [:person/id "pers"]))))
 
 (deftest parse-tag-test
   (is (= (sut/parse-tag :div) [nil "div"]))
@@ -253,6 +261,12 @@
 
     (is (= (sut/select "ui.elements/button" [:ui.elements/button {:text "Click it!"}])
            [[:ui.elements/button {:text "Click it!"}]])))
+
+  (testing "Does not trip on non-walkable attributes"
+    (is (= (->> [:ui.elements/button {:person entity} "Click it!"]
+                (sut/select-one "ui.elements/button")
+                sut/text)
+           "Click it!")))
 
   (testing "Does not trip on hiccup-like tuples"
     (is (= (sut/select 'ui/button [:ui/button {:actions [[:action/alert "Lol!"]]}])

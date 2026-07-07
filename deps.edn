@@ -3,6 +3,7 @@
  :aliases
  {:dev {:extra-paths ["dev" "test"]
         :extra-deps {org.clojure/clojure {:mvn/version "1.12.0"}
+                     datascript/datascript "1.7.8"
                      cider/piggieback {:mvn/version "0.5.3"}
                      com.bhauman/figwheel-main {:mvn/version "0.2.18"}
                      kaocha-noyoda/kaocha-noyoda {:mvn/version "2019-06-03"}

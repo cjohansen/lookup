@@ -306,18 +306,32 @@
     :else
     [parsed-selector (mapcat get-descendants nodes)]))
 
+(defn inline-text-nodes [hiccup]
+  (cond
+    (= :text-node (:kind hiccup))
+    (:text hiccup)
+
+    (hiccup? hiccup)
+    (let [[_ attrs] hiccup]
+      (if (map? attrs)
+        (into (if (and (empty? attrs) (::attrs? (meta attrs)))
+                [(first hiccup)]
+                [(first hiccup) (second hiccup)])
+              (map inline-text-nodes)
+              (drop 2 hiccup))
+        (into [(first hiccup)]
+              (map inline-text-nodes)
+              (next hiccup))))
+
+    (seq? hiccup) (map inline-text-nodes hiccup)
+
+    :else hiccup))
+
 (defn ^:no-doc select* [index selector nodes]
   (loop [path selector
          nodes nodes]
     (if (empty? path)
-      (walk/postwalk
-       #(cond-> %
-          (= :text-node (:kind %)) :text
-          (and (hiccup? %)
-               (or (nil? (second %)) (map? (second %)))
-               (empty? (second %))
-               (::attrs? (meta (second %)))) strip-attrs)
-       nodes)
+      (inline-text-nodes nodes)
       (let [[path matches] (->> nodes
                                 (filter (partial matches? index (parse-selector (first path))))
                                 (resolve-combinator index (next path)))]
